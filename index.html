@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Caliper</title>
+<meta name="description" content="Caliper is a terminal-native, AI-assisted parametric CAD toolkit in pure Rust — zero dependencies, everything-is-text, open core.">
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<style>
+  :root{
+    --bg:#0c0e12; --panel:#13161c; --panel2:#171b22; --ink:#e7eaf0; --muted:#9aa4b2;
+    --line:#242a33; --accent:#e8b765; --accent2:#6fd3c6; --code:#0a0c10; --radius:14px;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+    --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color-scheme:dark;
+  }
+  @media (prefers-color-scheme:light){
+    :root{--bg:#f7f8fa;--panel:#ffffff;--panel2:#f0f2f6;--ink:#161a20;--muted:#5a6572;
+      --line:#e3e7ee;--accent:#b5781a;--accent2:#1a8f82;--code:#0d1117;color-scheme:light;}
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+    line-height:1.55;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:920px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));
+    padding-right:max(20px,env(safe-area-inset-right,0px))}
+  .mono{font-family:var(--mono)}
+  /* hero */
+  header{padding:92px 0 40px;text-align:center}
+  .mark{width:92px;height:92px;margin:0 auto 18px;display:block}
+  .mark .leg{stroke:var(--ink);stroke-width:5.5;fill:none;stroke-linecap:round}
+  .mark .dim{stroke:var(--accent);stroke-width:2.6;fill:none;stroke-linecap:round}
+  .mark .pivot{fill:var(--accent)}
+  .tag{display:inline-block;font-family:var(--mono);font-size:12px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--accent);border:1px solid var(--line);
+    border-radius:999px;padding:5px 12px;margin-bottom:22px}
+  h1{font-size:clamp(42px,9vw,72px);margin:.08em 0 .18em;letter-spacing:-.02em;font-weight:800;
+    text-wrap:balance}
+  h1 .dot{color:var(--accent)}
+  .lede{font-size:clamp(17px,2.4vw,21px);color:var(--muted);max-width:44ch;margin:0 auto 26px;
+    text-wrap:balance}
+  .btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .btn{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:10px;
+    border:1px solid var(--line);background:var(--panel);color:var(--ink);display:inline-block}
+  .btn:hover{text-decoration:none;border-color:var(--accent)}
+  .btn.primary{background:var(--accent);color:#17120a;border-color:var(--accent);font-weight:700}
+  /* sections */
+  section{padding:30px 0}
+  h2{font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);
+    font-family:var(--mono);margin:0 0 18px}
+  .lead{font-size:18px;max-width:62ch;color:var(--ink)}
+  .lead b{color:var(--ink)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:4px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:20px;min-width:0;display:flex;flex-direction:column;gap:8px}
+  .card h3{margin:0;font-size:17px;display:flex;align-items:center;gap:9px}
+  .pill{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+    padding:3px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+  .pill.live{color:var(--accent2);border-color:color-mix(in srgb,var(--accent2) 45%,transparent)}
+  .card p{margin:0;color:var(--muted);font-size:14px}
+  .card .go{margin-top:auto;font-family:var(--mono);font-size:13px}
+  /* values */
+  .vals{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+  .val{border-left:2px solid var(--accent);padding:2px 0 2px 16px}
+  .val b{display:block;font-family:var(--mono);font-size:14px;margin-bottom:3px}
+  .val span{color:var(--muted);font-size:14px}
+  footer{border-top:1px solid var(--line);margin-top:44px;padding:30px 0 70px;
+    color:var(--muted);font-size:13px;text-align:center}
+  .lockup{display:flex;align-items:center;gap:9px;justify-content:center;
+    font-family:var(--mono);font-weight:700;color:var(--ink);margin-bottom:10px}
+  .lockup svg{width:22px;height:22px}
+  .lockup .leg{stroke:var(--ink);stroke-width:5.5;fill:none;stroke-linecap:round}
+  .lockup .dim{stroke:var(--accent);stroke-width:2.6;fill:none;stroke-linecap:round}
+  .lockup .pivot{fill:var(--accent)}
+  .lockup .ext{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <svg class="mark" viewBox="0 0 64 64" aria-hidden="true">
+      <path class="leg" d="M32 11 L14 47"/>
+      <path class="leg" d="M32 11 L50 47"/>
+      <path class="dim" d="M14 47 V55 M50 47 V55 M13 55 H51"/>
+      <circle class="pivot" cx="32" cy="11" r="5.5"/>
+    </svg>
+    <span class="tag">Open-core · pure Rust · terminal-native</span>
+    <h1>Caliper<span class="dot">.cad</span></h1>
+    <p class="lede">Precision CAD that lives in your terminal. A design is a
+      <code class="mono">.cad</code> script — scriptable, diffable, reproducible.</p>
+    <div class="btns">
+      <a class="btn primary" href="/caliper/">Explore Caliper →</a>
+      <a class="btn" href="https://github.com/calipercad/caliper">GitHub ↗</a>
+    </div>
+  </header>
+
+  <section>
+    <h2>What we build</h2>
+    <p class="lead">
+      <b>calipercad</b> builds open tools for people who design real, physical
+      things — gears, enclosures, jigs, laser and CNC parts — and would rather
+      type than click. One small Rust kernel with <b>zero cargo dependencies</b>
+      does genuinely hard CAD: exact-integer 2D booleans, 3D mesh CSG, a 2D
+      constraint solver, and an AI copilot that speaks the same command language
+      you do. It's <b>open core</b> — a free, auditable foundation, with hosted
+      and commercial editions on top for teams that need them.
+    </p>
+  </section>
+
+  <section>
+    <h2>Projects</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>Caliper <span class="pill live">Live</span></h3>
+        <p>The terminal-native, AI-assisted parametric CAD toolkit. Exact 2D/3D
+          geometry, a constraint sketcher, 20+ parametric skills, a live preview
+          TUI, and exports for laser, CNC, plotters &amp; 3D printers.</p>
+        <span class="go"><a href="/caliper/">calipercad.github.io/caliper →</a></span>
+      </div>
+      <div class="card">
+        <h3>Caliper Cloud <span class="pill">Planned</span></h3>
+        <p>A hosted, metered service on top of the open core: headless/CI
+          rendering, managed text-to-CAD, and shared BOM &amp; assemblies with an
+          SLA. The part that costs real compute — so it's the part that's paid.</p>
+        <span class="go" style="color:var(--muted)">In design</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>How we work</h2>
+    <div class="vals">
+      <div class="val"><b>std-only kernel</b><span>No cargo dependencies. Compiles
+        offline, stays auditable. External programs only at the edges.</span></div>
+      <div class="val"><b>everything is text</b><span>Parts are scripts — version
+        them, diff them, review them, regenerate them.</span></div>
+      <div class="val"><b>open core</b><span>Apache-2.0 foundation anyone can use
+        and extend; premium surfaces fund the work.</span></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="lockup">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <path class="leg" d="M32 11 L14 47"/><path class="leg" d="M32 11 L50 47"/>
+        <path class="dim" d="M14 47 V55 M50 47 V55 M13 55 H51"/>
+        <circle class="pivot" cx="32" cy="11" r="5.5"/>
+      </svg><span>caliper<span class="ext">.cad</span></span>
+    </div>
+    Built in Rust · Apache-2.0 · <a href="https://github.com/calipercad">github.com/calipercad</a>
+  </footer>
+
+</div>
+</body>
+</html>
